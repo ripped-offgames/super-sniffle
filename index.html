@@ -98,7 +98,7 @@
       </div>
 
       <label class="search-wrap" aria-label="Search games">
-        <input id="search" placeholder="Search games or tags… (e.g. flappy, puzzle)" autocomplete="off" />
+        <input id="search" placeholder="Search games)" autocomplete="off" />
         <button class="btn small" id="clearSearch" type="button" title="Clear search">Clear</button>
       </label>
 
@@ -127,17 +127,17 @@
       <h2 style="margin: 0 0 6px 0;">Add your games</h2>
       <p class="desc" style="margin: 0 0 10px 0;">Edit the <code>GAMES</code> array in the HTML to add or remove entries. Use local paths (e.g. <code>games/flappy/index.html</code>) or full URLs. Some sites block iframes; if a game doesn't load, use <em>Open</em> instead of <em>Play</em>.</p>
       <pre style="white-space: pre-wrap; background: #0b1220; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); overflow: auto;">{
-  title: "Flappy Cube",
+  title: "Flappy Bird",
   url: "games/flappy/index.html",  // path or https:// URL
   category: "arcade",               // arcade | puzzle | action | io | retro
-  tags: ["clicker", "endless"],
+  tags: ["endless"],
   thumb: "auto"                     // "auto" uses emoji art; or a data:image/png;base64,...
 }</pre>
     </section>
   </main>
 
   <footer>
-    Built with ❤ for simplicity. Host this single HTML file anywhere (GitHub Pages, local, school server). No trackers, no external libs.
+Have fun!
   </footer>
 
   <dialog id="player" aria-label="Game player modal" class="hidden">
@@ -178,11 +178,11 @@
     // ====== 1) Configure your games here ======
     const GAMES = [
       {
-        title: "Flappy Cube",
+        title: "Flappy Bird",
         url: "games/flappy/index.html",
         category: "arcade",
-        tags: ["click", "endless"],
-        desc: "Tap to fly. Avoid pipes.",
+        tags: ["endless"],
+        desc: "You already know what flappy bird is",
         thumb: "auto"
       },
       {
@@ -210,19 +210,11 @@
         thumb: "auto"
       },
       {
-        title: "Bubble Pop",
-        url: "games/bubbles/index.html",
-        category: "puzzle",
-        tags: ["aim", "match"],
-        desc: "Aim and match bubbles.",
-        thumb: "auto"
-      },
-      {
-        title: "Arena .io",
+        title: "Krunker",
         url: "https://example.com/your-io-game", // External example (may block iframe)
         category: "io",
         tags: ["multiplayer"],
-        desc: ".io style arena demo.",
+        desc: "Minecraft Shooter",
         thumb: "auto"
       }
     ];
