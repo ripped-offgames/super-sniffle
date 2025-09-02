@@ -1,259 +1,352 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mini Arcade</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PlayHub Lite — Unblocked-Style Games</title>
+  <meta name="description" content="A simple, single-file, unblocked-style games portal you can host anywhere." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E🎮%3C/text%3E%3C/svg%3E" />
   <style>
+    :root {
+      --bg: #0b0f14;
+      --bg-elev: #111827;
+      --card: #0f172a;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #22d3ee;
+      --accent-2: #a78bfa;
+      --ring: rgba(34, 211, 238, 0.35);
+      --ok: #34d399;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      background: #f4f4f9;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 80% -10%, rgba(167,139,250,0.12), transparent),
+                  radial-gradient(800px 400px at -10% 20%, rgba(34,211,238,0.12), transparent),
+                  var(--bg);
+      color: var(--text);
     }
+    a { color: inherit; text-decoration: none; }
+
+    /* Layout */
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
     header {
-      padding: 20px;
-      font-size: 2rem;
-      font-weight: bold;
+      position: sticky; top: 0; z-index: 30;
+      backdrop-filter: saturate(1.2) blur(10px);
+      background: color-mix(in oklab, var(--bg-elev) 70%, transparent);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      width: 90%;
-      max-width: 1000px;
-      padding: 20px;
+    .bar { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding: 14px 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: 0.2px; }
+    .brand .logo { font-size: 28px; filter: drop-shadow(0 2px 8px rgba(34,211,238,0.5)); }
+    .tag { font-size: 12px; padding: 2px 8px; border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; color: var(--muted); }
+
+    .search-wrap {
+      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+      background: var(--bg-elev); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 6px 8px 6px 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     }
-    .card {
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 20px;
-      text-align: center;
-      transition: transform 0.2s;
+    .search-wrap:has(input:focus) { outline: 2px solid var(--ring); }
+    .search-wrap input {
+      outline: none; background: transparent; border: 0; color: var(--text); padding: 10px 6px; font-size: 16px;
     }
-    .card:hover {
-      transform: translateY(-5px);
-    }
-    .card button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      background: #4a90e2;
-      color: white;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    .card button:hover {
-      background: #357abd;
-    }
-    canvas {
-      background: #eee;
-      margin-top: 15px;
-      border-radius: 10px;
-    }
+    .btn { cursor: pointer; border: 0; border-radius: 12px; padding: 10px 14px; font-weight: 700; color: #0b1020; background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+    .btn.small { padding: 8px 12px; font-size: 13px; }
+    .btn.ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
+
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; }
+    .chip { padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; color: var(--muted); cursor: pointer; user-select: none; }
+    .chip.active { border-color: var(--accent); color: var(--text); box-shadow: 0 0 0 3px var(--ring) inset; }
+
+    main { padding: 18px 24px 80px; }
+    .grid { display: grid; grid-template-columns: repeat( auto-fill, minmax(220px, 1fr) ); gap: 16px; }
+    .card { position: relative; background: color-mix(in oklab, var(--card), black 10%); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; transition: transform .18s ease, box-shadow .18s ease; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+    .thumb { aspect-ratio: 16/9; background: linear-gradient(120deg, rgba(34,211,238,0.2), rgba(167,139,250,0.18)); display: grid; place-items: center; font-size: 42px; }
+    .meta { padding: 12px; display: grid; gap: 8px; }
+    .title { font-weight: 800; }
+    .desc { color: var(--muted); font-size: 13px; min-height: 36px; }
+    .row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+    .badge { font-size: 12px; color: var(--muted); border: 1px solid rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 999px; }
+
+    /* Modal */
+    dialog#player { border: 0; padding: 0; width: min(1200px, 96vw); height: min(80vh, 800px); border-radius: 16px; overflow: hidden; background: var(--bg-elev); }
+    dialog::backdrop { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+    .player-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .player-title { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+    .status { font-size: 12px; color: var(--muted); }
+    .frame-wrap { position: relative; width: 100%; height: calc(100% - 48px); background: #000; }
+    .frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+    footer { opacity: 0.8; font-size: 13px; color: var(--muted); text-align: center; padding: 40px 16px; }
+    .hidden { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 1, 1); border: 0; }
   </style>
 </head>
 <body>
-  <header>🎮 Mini Arcade</header>
-  <div class="grid">
-    <div class="card">
-      <h3>Snake</h3>
-      <button onclick="startSnake()">Play</button>
-      <canvas id="snakeCanvas" width="200" height="200"></canvas>
+  <header>
+    <div class="bar container">
+      <div class="brand" aria-label="Site logo and name">
+        <div class="logo" aria-hidden="true">🎮</div>
+        <div>
+          <div style="font-size:18px">PlayHub <span style="color:var(--accent)">Lite</span></div>
+          <div class="tag" title="Single-File">single-file</div>
+        </div>
+      </div>
+
+      <label class="search-wrap" aria-label="Search games">
+        <input id="search" placeholder="Search games or tags… (e.g. flappy, puzzle)" autocomplete="off" />
+        <button class="btn small" id="clearSearch" type="button" title="Clear search">Clear</button>
+      </label>
+
+      <div class="controls">
+        <button class="btn ghost small" id="toggleTheme" title="Toggle dark/light">🌗 Theme</button>
+        <a class="btn small" href="#add-games" title="How to add games">➕ Add Games</a>
+      </div>
     </div>
-    <div class="card">
-      <h3>Falling Blocks</h3>
-      <button onclick="startBlocks()">Play</button>
-      <canvas id="blocksCanvas" width="200" height="200"></canvas>
+
+    <div class="container" style="padding-top:0; padding-bottom: 16px;">
+      <div class="controls" role="tablist" aria-label="Filter by category">
+        <span class="chip active" data-filter="all" role="tab" aria-selected="true">All</span>
+        <span class="chip" data-filter="arcade" role="tab">Arcade</span>
+        <span class="chip" data-filter="puzzle" role="tab">Puzzle</span>
+        <span class="chip" data-filter="action" role="tab">Action</span>
+        <span class="chip" data-filter="io" role="tab">.io</span>
+        <span class="chip" data-filter="retro" role="tab">Retro</span>
+      </div>
     </div>
-    <div class="card">
-      <h3>Whack-a-Mole</h3>
-      <button onclick="startMole()">Play</button>
-      <canvas id="moleCanvas" width="200" height="200"></canvas>
+  </header>
+
+  <main class="container">
+    <section class="grid" id="grid" aria-live="polite"></section>
+
+    <section id="add-games" style="margin-top: 36px; background: color-mix(in oklab, var(--bg-elev), black 6%); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px 18px;">
+      <h2 style="margin: 0 0 6px 0;">Add your games</h2>
+      <p class="desc" style="margin: 0 0 10px 0;">Edit the <code>GAMES</code> array in the HTML to add or remove entries. Use local paths (e.g. <code>games/flappy/index.html</code>) or full URLs. Some sites block iframes; if a game doesn't load, use <em>Open</em> instead of <em>Play</em>.</p>
+      <pre style="white-space: pre-wrap; background: #0b1220; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); overflow: auto;">{
+  title: "Flappy Cube",
+  url: "games/flappy/index.html",  // path or https:// URL
+  category: "arcade",               // arcade | puzzle | action | io | retro
+  tags: ["clicker", "endless"],
+  thumb: "auto"                     // "auto" uses emoji art; or a data:image/png;base64,...
+}</pre>
+    </section>
+  </main>
+
+  <footer>
+    Built with ❤ for simplicity. Host this single HTML file anywhere (GitHub Pages, local, school server). No trackers, no external libs.
+  </footer>
+
+  <dialog id="player" aria-label="Game player modal" class="hidden">
+    <div class="player-head">
+      <div class="player-title">
+        <span style="font-size:20px">🕹️</span>
+        <span id="playerTitle">Loading…</span>
+        <span id="playerStatus" class="status">(press Esc to close)</span>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <a id="openNew" class="btn ghost small" target="_blank" rel="noopener">Open ↗</a>
+        <button id="closePlayer" class="btn small" type="button">Close</button>
+      </div>
     </div>
-    <div class="card">
-      <h3>2048</h3>
-      <button onclick="start2048()">Play</button>
-      <canvas id="game2048" width="200" height="200"></canvas>
+    <div class="frame-wrap">
+      <iframe id="gameFrame" sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-popups" referrerpolicy="no-referrer"></iframe>
     </div>
-    <div class="card">
-      <h3>Flappy Bird</h3>
-      <button onclick="startFlappy()">Play</button>
-      <canvas id="flappyCanvas" width="200" height="200"></canvas>
-    </div>
-  </div>
+  </dialog>
+
+  <template id="cardTemplate">
+    <article class="card" data-category="" data-tags="">
+      <div class="thumb" aria-hidden="true"></div>
+      <div class="meta">
+        <div class="title"></div>
+        <div class="desc"></div>
+        <div class="row">
+          <span class="badge"></span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn small playBtn" type="button">Play</button>
+            <a class="btn ghost small openBtn" target="_blank" rel="noopener">Open</a>
+          </div>
+        </div>
+      </div>
+    </article>
+  </template>
 
   <script>
-    /* --- Snake --- */
-    function startSnake() {
-      const canvas = document.getElementById("snakeCanvas");
-      const ctx = canvas.getContext("2d");
-      let box = 10;
-      let snake = [{x: 9*box, y: 9*box}];
-      let direction = "RIGHT";
-      let food = {
-        x: Math.floor(Math.random()*20)*box,
-        y: Math.floor(Math.random()*20)*box
-      };
-      document.addEventListener("keydown", e => {
-        if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
-        if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
-        if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
-        if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+    // ====== 1) Configure your games here ======
+    const GAMES = [
+      {
+        title: "Flappy Cube",
+        url: "games/flappy/index.html",
+        category: "arcade",
+        tags: ["click", "endless"],
+        desc: "Tap to fly. Avoid pipes.",
+        thumb: "auto"
+      },
+      {
+        title: "2048+",
+        url: "games/2048/index.html",
+        category: "puzzle",
+        tags: ["numbers", "merge"],
+        desc: "Slide tiles. Reach 2048.",
+        thumb: "auto"
+      },
+      {
+        title: "Mini Racer",
+        url: "games/racer/index.html",
+        category: "action",
+        tags: ["car", "fast"],
+        desc: "Arcade racing, simple and fast.",
+        thumb: "auto"
+      },
+      {
+        title: "Retro Snake",
+        url: "games/snake/index.html",
+        category: "retro",
+        tags: ["classic", "grid"],
+        desc: "Eat apples, grow longer.",
+        thumb: "auto"
+      },
+      {
+        title: "Bubble Pop",
+        url: "games/bubbles/index.html",
+        category: "puzzle",
+        tags: ["aim", "match"],
+        desc: "Aim and match bubbles.",
+        thumb: "auto"
+      },
+      {
+        title: "Arena .io",
+        url: "https://example.com/your-io-game", // External example (may block iframe)
+        category: "io",
+        tags: ["multiplayer"],
+        desc: ".io style arena demo.",
+        thumb: "auto"
+      }
+    ];
+
+    // ====== 2) Rendering ======
+    const grid = document.getElementById('grid');
+    const template = document.getElementById('cardTemplate');
+
+    function emojiThumb(category) {
+      const map = { arcade: '🕹️', puzzle: '🧩', action: '⚡', io: '🌐', retro: '👾' };
+      return `<div style="font-size:40px">${map[category] || '🎮'}</div>`;
+    }
+
+    function renderCards(list) {
+      grid.innerHTML = '';
+      if (!list.length) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; color: var(--muted); padding: 30px; border: 1px dashed rgba(255,255,255,0.2); border-radius: 16px;">No matches. Try different keywords or category.</div>`;
+        return;
+      }
+      for (const g of list) {
+        const node = template.content.cloneNode(true);
+        const a = node.querySelector('.card');
+        a.dataset.category = g.category;
+        a.dataset.tags = (g.tags || []).join(',');
+
+        const thumb = node.querySelector('.thumb');
+        if (g.thumb === 'auto' || !g.thumb) thumb.innerHTML = emojiThumb(g.category);
+        else if (g.thumb.startsWith('data:image')) thumb.innerHTML = `<img src="${g.thumb}" alt="${g.title} thumbnail" style="width:100%; height:100%; object-fit:cover;"/>`;
+        else thumb.innerHTML = `<img src="${g.thumb}" alt="${g.title} thumbnail" style="width:100%; height:100%; object-fit:cover;"/>`;
+
+        node.querySelector('.title').textContent = g.title;
+        node.querySelector('.desc').textContent = g.desc || '';
+        node.querySelector('.badge').textContent = g.category;
+
+        const openBtn = node.querySelector('.openBtn');
+        openBtn.href = g.url;
+        openBtn.setAttribute('aria-label', `Open ${g.title} in a new tab`);
+
+        const playBtn = node.querySelector('.playBtn');
+        playBtn.addEventListener('click', () => openPlayer(g));
+
+        grid.appendChild(node);
+      }
+    }
+
+    // ====== 3) Search + filter ======
+    const search = document.getElementById('search');
+    const clearSearch = document.getElementById('clearSearch');
+    const chips = Array.from(document.querySelectorAll('.chip'));
+
+    let currentFilter = 'all';
+
+    function applyFilters() {
+      const q = search.value.trim().toLowerCase();
+      const filtered = GAMES.filter(g => {
+        const inCat = currentFilter === 'all' || g.category === currentFilter;
+        const hay = `${g.title} ${(g.tags||[]).join(' ')} ${g.desc || ''}`.toLowerCase();
+        const inSearch = !q || hay.includes(q);
+        return inCat && inSearch;
       });
-      function draw() {
-        ctx.fillStyle = "#eee";
-        ctx.fillRect(0,0,200,200);
-        for (let s of snake) {
-          ctx.fillStyle = "green";
-          ctx.fillRect(s.x, s.y, box, box);
-        }
-        ctx.fillStyle = "red";
-        ctx.fillRect(food.x, food.y, box, box);
-        let head = {x: snake[0].x, y: snake[0].y};
-        if (direction === "UP") head.y -= box;
-        if (direction === "DOWN") head.y += box;
-        if (direction === "LEFT") head.x -= box;
-        if (direction === "RIGHT") head.x += box;
-        if (head.x === food.x && head.y === food.y) {
-          food = {
-            x: Math.floor(Math.random()*20)*box,
-            y: Math.floor(Math.random()*20)*box
-          };
-        } else {
-          snake.pop();
-        }
-        snake.unshift(head);
-        if(head.x<0||head.y<0||head.x>=200||head.y>=200||snake.slice(1).some(s=>s.x===head.x&&s.y===head.y)){
-          clearInterval(game);
-        }
-      }
-      let game = setInterval(draw,100);
+      renderCards(filtered);
     }
 
-    /* --- Falling Blocks --- */
-    function startBlocks() {
-      const canvas = document.getElementById("blocksCanvas");
-      const ctx = canvas.getContext("2d");
-      let y = 0;
-      function draw() {
-        ctx.fillStyle = "#eee";
-        ctx.fillRect(0,0,200,200);
-        ctx.fillStyle = "blue";
-        ctx.fillRect(90,y,20,20);
-        y+=5;
-        if(y>200) y=0;
-      }
-      setInterval(draw,100);
+    chips.forEach(chip => chip.addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilter = chip.dataset.filter;
+      chips.forEach(c => c.setAttribute('aria-selected', c === chip ? 'true' : 'false'));
+      applyFilters();
+    }));
+
+    search.addEventListener('input', applyFilters);
+    clearSearch.addEventListener('click', () => { search.value = ''; applyFilters(); search.focus(); });
+
+    // ====== 4) Player modal ======
+    const dlg = document.getElementById('player');
+    const frame = document.getElementById('gameFrame');
+    const playerTitle = document.getElementById('playerTitle');
+    const openNew = document.getElementById('openNew');
+    const closePlayer = document.getElementById('closePlayer');
+
+    function openPlayer(game) {
+      playerTitle.textContent = game.title;
+      openNew.href = game.url;
+      frame.src = '';
+      if (!dlg.open) dlg.showModal();
+      // small delay to avoid white flash on some browsers
+      setTimeout(() => { frame.src = game.url; }, 50);
+      dlg.classList.remove('hidden');
     }
 
-    /* --- Whack-a-Mole --- */
-    function startMole() {
-      const canvas = document.getElementById("moleCanvas");
-      const ctx = canvas.getContext("2d");
-      let mole = {x:50,y:50};
-      canvas.onclick = function(e){
-        let rect = canvas.getBoundingClientRect();
-        let x = e.clientX-rect.left;
-        let y = e.clientY-rect.top;
-        if(x>mole.x && x<mole.x+30 && y>mole.y && y<mole.y+30){
-          mole.x = Math.random()*170;
-          mole.y = Math.random()*170;
-        }
-      };
-      function draw() {
-        ctx.fillStyle="#eee";
-        ctx.fillRect(0,0,200,200);
-        ctx.fillStyle="brown";
-        ctx.fillRect(mole.x,mole.y,30,30);
-      }
-      setInterval(draw,100);
-    }
+    closePlayer.addEventListener('click', () => { dlg.close(); dlg.classList.add('hidden'); frame.src=''; });
+    dlg.addEventListener('cancel', (e) => { e.preventDefault(); dlg.close(); dlg.classList.add('hidden'); frame.src=''; });
 
-    /* --- 2048 (mini) --- */
-    function start2048() {
-      const canvas=document.getElementById("game2048");
-      const ctx=canvas.getContext("2d");
-      let grid=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
-      function addTile(){
-        let empty=[];
-        for(let r=0;r<4;r++)for(let c=0;c<4;c++)if(!grid[r][c])empty.push([r,c]);
-        let [r,c]=empty[Math.floor(Math.random()*empty.length)];
-        grid[r][c]=Math.random()<0.9?2:4;
+    // ====== 5) Theme toggle (persists) ======
+    const toggleTheme = document.getElementById('toggleTheme');
+    const THEME_KEY = 'playhub-theme';
+    function setTheme(mode) {
+      if (mode === 'light') {
+        document.documentElement.style.setProperty('--bg', '#f6f7fb');
+        document.documentElement.style.setProperty('--bg-elev', '#ffffff');
+        document.documentElement.style.setProperty('--card', '#ffffff');
+        document.documentElement.style.setProperty('--text', '#0b1220');
+        document.documentElement.style.setProperty('--muted', '#4b5563');
+      } else {
+        document.documentElement.style.removeProperty('--bg');
+        document.documentElement.style.removeProperty('--bg-elev');
+        document.documentElement.style.removeProperty('--card');
+        document.documentElement.style.removeProperty('--text');
+        document.documentElement.style.removeProperty('--muted');
       }
-      function draw(){
-        ctx.fillStyle="#eee";ctx.fillRect(0,0,200,200);
-        ctx.font="20px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
-        for(let r=0;r<4;r++)for(let c=0;c<4;c++){
-          ctx.fillStyle=grid[r][c]?"#ffa":"#ccc";
-          ctx.fillRect(c*50,r*50,50,50);
-          if(grid[r][c])ctx.fillText(grid[r][c],c*50+25,r*50+25);
-        }
-      }
-      function move(dir){
-        let moved=false;
-        for(let i=0;i<4;i++){
-          let line=[];
-          for(let j=0;j<4;j++){
-            let v=dir<2?grid[j][i]:grid[i][j];
-            if(v)line.push(v);
-          }
-          for(let j=0;j<line.length-1;j++){
-            if(line[j]===line[j+1]){
-              line[j]*=2;line.splice(j+1,1);
-            }
-          }
-          while(line.length<4)line.push(0);
-          for(let j=0;j<4;j++){
-            let v=dir<2?line[j]:line[j];
-            if(dir===0)grid[j][i]=line[j]; // up
-            if(dir===1)grid[3-j][i]=line[j]; // down
-            if(dir===2)grid[i][j]=line[j]; // left
-            if(dir===3)grid[i][3-j]=line[j]; // right
-          }
-        }
-        addTile();draw();
-      }
-      document.onkeydown=e=>{
-        if(e.key==="ArrowUp")move(0);
-        if(e.key==="ArrowDown")move(1);
-        if(e.key==="ArrowLeft")move(2);
-        if(e.key==="ArrowRight")move(3);
-      }
-      addTile();addTile();draw();
+      localStorage.setItem(THEME_KEY, mode);
     }
+    toggleTheme.addEventListener('click', () => {
+      const current = localStorage.getItem(THEME_KEY) || 'dark';
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+    (function initTheme(){
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved) setTheme(saved);
+    })();
 
-    /* --- Flappy Bird --- */
-    function startFlappy(){
-      const canvas=document.getElementById("flappyCanvas");
-      const ctx=canvas.getContext("2d");
-      let birdY=100, gravity=2, lift=-25, velocity=0;
-      let pipes=[];
-      canvas.onclick=()=>{velocity=lift};
-      function draw(){
-        ctx.fillStyle="#70c5ce";ctx.fillRect(0,0,200,200);
-        velocity+=gravity*0.5;birdY+=velocity*0.5;
-        ctx.fillStyle="yellow";ctx.beginPath();ctx.arc(50,birdY,10,0,Math.PI*2);ctx.fill();
-        if(pipes.length===0||pipes[pipes.length-1].x<120){
-          let top=Math.random()*100+20;let gap=50;
-          pipes.push({x:200,top:top,gap:gap});
-        }
-        for(let p of pipes){
-          p.x-=2;
-          ctx.fillStyle="green";
-          ctx.fillRect(p.x,0,20,p.top);
-          ctx.fillRect(p.x,p.top+p.gap,20,200);
-          if(50>p.x&&50<p.x+20&&(birdY< p.top || birdY>p.top+p.gap)){
-            pipes=[];birdY=100;velocity=0;
-          }
-        }
-      }
-      setInterval(draw,30);
-    }
+    // ====== 6) Init ======
+    renderCards(GAMES);
   </script>
 </body>
 </html>
